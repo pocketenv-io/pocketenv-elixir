@@ -10,12 +10,12 @@ directly from your Elixir applications.
 
 ## Installation
 
-Add `pocketenv` to your list of dependencies in `mix.exs`:
+Add `pocketenv_ex` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
   [
-    {:pocketenv, "~> 0.1"}
+    {:pocketenv_ex, "~> 0.1"}
   ]
 end
 ```
