@@ -33,7 +33,7 @@ mix deps.get
 ```elixir
 import Config
 
-config :pocketenv,
+config :pocketenv_ex,
   token: "your-pocketenv-token",
   api_url: "https://api.pocketenv.io"   # optional — this is the default
 ```

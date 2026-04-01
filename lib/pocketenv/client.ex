@@ -35,7 +35,7 @@ defmodule Pocketenv.Client do
   """
   @spec base_url() :: String.t()
   def base_url do
-    Application.get_env(:pocketenv, :api_url) ||
+    Application.get_env(:pocketenv_ex, :api_url) ||
       System.get_env("POCKETENV_API_URL") ||
       @default_api_url
   end
@@ -49,7 +49,7 @@ defmodule Pocketenv.Client do
   """
   @spec token() :: {:ok, String.t()} | {:error, :not_logged_in}
   def token do
-    case Application.get_env(:pocketenv, :token) ||
+    case Application.get_env(:pocketenv_ex, :token) ||
            System.get_env("POCKETENV_TOKEN") ||
            read_token_file() do
       nil -> {:error, :not_logged_in}
