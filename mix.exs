@@ -9,7 +9,10 @@ defmodule Pocketenv.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       description: "Elixir SDK for the Pocketenv",
-      package: package()
+      package: package(),
+      docs: docs(),
+      source_url: "https://github.com/pocketenv-io/pocketenv-elixir",
+      homepage_url: "https://github.com/pocketenv-io/pocketenv-elixir"
     ]
   end
 
@@ -31,6 +34,13 @@ defmodule Pocketenv.MixProject do
     [
       licenses: ["MIT"],
       links: %{"GitHub" => "https://github.com/pocketenv-io/pocketenv-elixir"}
+    ]
+  end
+
+  defp docs do
+    [
+      main: "readme",
+      extras: ["README.md", "CHANGELOG.md"]
     ]
   end
 end
