@@ -8,7 +8,7 @@ defmodule Pocketenv.MixProject do
       elixir: "~> 1.15",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      description: "Elixir SDK for the Pocketenv sandbox API",
+      description: "Elixir SDK for the Pocketenv",
       package: package()
     ]
   end
