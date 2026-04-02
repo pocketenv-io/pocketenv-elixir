@@ -4,7 +4,7 @@ defmodule Pocketenv.Crypto do
   #
   # Algorithm:
   #   1. Generate ephemeral Curve25519 (X25519) keypair via :crypto
-  #   2. Derive nonce = first 24 bytes of BLAKE2b(eph_pk || recipient_pk)
+  #   2. Derive nonce = BLAKE2b-24(eph_pk || recipient_pk)  — matches libsodium exactly
   #   3. Encrypt with NaCl crypto_box(message, nonce, eph_sk, recipient_pk)  [Kcl]
   #   4. Output = eph_pk (32 bytes) || ciphertext
   #   5. Base64url-encode without padding (matches TypeScript sodium implementation)
