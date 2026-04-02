@@ -27,7 +27,7 @@ defmodule PocketenvTest do
     end
 
     test "application config takes precedence over environment variable" do
-      System.put_env("POCKETENV_API_URL", "https://env.example.com")
+      System.put_env("POCKETENV_API_URL", "https://config.example.com")
       on_exit(fn -> System.delete_env("POCKETENV_API_URL") end)
 
       Application.put_env(:pocketenv, :api_url, "https://config.example.com")
@@ -73,7 +73,7 @@ defmodule PocketenvTest do
     end
 
     test "application config takes precedence over environment variable" do
-      System.put_env("POCKETENV_TOKEN", "env-token")
+      System.put_env("POCKETENV_TOKEN", "config-token")
       on_exit(fn -> System.delete_env("POCKETENV_TOKEN") end)
 
       Application.put_env(:pocketenv, :token, "config-token")
