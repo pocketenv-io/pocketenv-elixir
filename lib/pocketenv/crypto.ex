@@ -45,8 +45,8 @@ defmodule Pocketenv.Crypto do
   defp box_seal(message, recipient_pk) do
     {eph_pk, eph_sk} = :crypto.generate_key(:ecdh, :x25519)
 
-    # nonce = BLAKE2b(eph_pk || recipient_pk), take first 24 bytes
-    nonce = :crypto.hash(:blake2b, eph_pk <> recipient_pk) |> binary_part(0, 24)
+    # nonce = BLAKE2b-24(eph_pk || recipient_pk) — matches libsodium exactly
+    nonce = :crypto.hash({:blake2b, 24}, eph_pk <> recipient_pk)
 
     {ciphertext, _state} = Kcl.box(message, nonce, eph_sk, recipient_pk)
 
