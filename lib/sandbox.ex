@@ -31,7 +31,7 @@ defmodule Sandbox do
   """
 
   alias Pocketenv.API
-  alias Sandbox.Types.{ExecResult, Port, Profile}
+  alias Sandbox.Types.{ExecResult, Port, Profile, Secret, SshKey, TailscaleAuthKey}
 
   @type status :: :running | :stopped | :unknown
 
@@ -367,6 +367,149 @@ defmodule Sandbox do
 
   def vscode(%__MODULE__{} = sandbox, opts) do
     API.expose_vscode(sandbox.name, opts)
+  end
+
+  # ---------------------------------------------------------------------------
+  # Secrets
+  # ---------------------------------------------------------------------------
+
+  @doc """
+  Lists all secrets for the sandbox.
+
+  ## Options
+
+    - `:limit`  — max results (default: `100`).
+    - `:offset` — pagination offset (default: `0`).
+    - `:token`  — bearer token override.
+
+  ## Example
+
+      {:ok, secrets} = sandbox |> Sandbox.list_secrets()
+  """
+  @spec list_secrets(t() | {:ok, t()}, keyword()) ::
+          {:ok, [Secret.t()]} | {:error, term()}
+  def list_secrets(sandbox_or_result, opts \\ [])
+  def list_secrets({:ok, %__MODULE__{} = sandbox}, opts), do: list_secrets(sandbox, opts)
+
+  def list_secrets(%__MODULE__{} = sandbox, opts) do
+    API.list_secrets(sandbox.id, opts)
+  end
+
+  @doc """
+  Adds an encrypted secret to the sandbox.
+
+  ## Example
+
+      sandbox |> Sandbox.set_secret("DATABASE_URL", "postgres://...")
+  """
+  @spec set_secret(t() | {:ok, t()}, String.t(), String.t(), keyword()) ::
+          {:ok, map()} | {:error, term()}
+  def set_secret(sandbox_or_result, name, value, opts \\ [])
+
+  def set_secret({:ok, %__MODULE__{} = sandbox}, name, value, opts),
+    do: set_secret(sandbox, name, value, opts)
+
+  def set_secret(%__MODULE__{} = sandbox, name, value, opts) do
+    API.add_secret(sandbox.id, name, value, opts)
+  end
+
+  @doc """
+  Deletes a secret by its id.
+
+  ## Example
+
+      sandbox |> Sandbox.delete_secret("secret-id")
+  """
+  @spec delete_secret(t() | {:ok, t()}, String.t(), keyword()) ::
+          {:ok, map()} | {:error, term()}
+  def delete_secret(sandbox_or_result, id, opts \\ [])
+
+  def delete_secret({:ok, %__MODULE__{} = sandbox}, id, opts),
+    do: delete_secret(sandbox, id, opts)
+
+  def delete_secret(%__MODULE__{}, id, opts) do
+    API.delete_secret(id, opts)
+  end
+
+  # ---------------------------------------------------------------------------
+  # SSH Keys
+  # ---------------------------------------------------------------------------
+
+  @doc """
+  Fetches the SSH key pair for the sandbox.
+
+  ## Example
+
+      {:ok, ssh_key} = sandbox |> Sandbox.get_ssh_keys()
+      IO.puts(ssh_key.public_key)
+  """
+  @spec get_ssh_keys(t() | {:ok, t()}, keyword()) ::
+          {:ok, SshKey.t()} | {:error, term()}
+  def get_ssh_keys(sandbox_or_result, opts \\ [])
+  def get_ssh_keys({:ok, %__MODULE__{} = sandbox}, opts), do: get_ssh_keys(sandbox, opts)
+
+  def get_ssh_keys(%__MODULE__{} = sandbox, opts) do
+    API.get_ssh_keys(sandbox.id, opts)
+  end
+
+  @doc """
+  Stores an SSH key pair for the sandbox. The private key is encrypted
+  client-side before transmission.
+
+  ## Example
+
+      sandbox |> Sandbox.set_ssh_keys(private_pem, public_key)
+  """
+  @spec set_ssh_keys(t() | {:ok, t()}, String.t(), String.t(), keyword()) ::
+          {:ok, map()} | {:error, term()}
+  def set_ssh_keys(sandbox_or_result, private_key, public_key, opts \\ [])
+
+  def set_ssh_keys({:ok, %__MODULE__{} = sandbox}, private_key, public_key, opts),
+    do: set_ssh_keys(sandbox, private_key, public_key, opts)
+
+  def set_ssh_keys(%__MODULE__{} = sandbox, private_key, public_key, opts) do
+    API.put_ssh_keys(sandbox.id, private_key, public_key, opts)
+  end
+
+  # ---------------------------------------------------------------------------
+  # Tailscale
+  # ---------------------------------------------------------------------------
+
+  @doc """
+  Fetches the Tailscale auth key for the sandbox.
+
+  ## Example
+
+      {:ok, ts} = sandbox |> Sandbox.get_tailscale_auth_key()
+  """
+  @spec get_tailscale_auth_key(t() | {:ok, t()}, keyword()) ::
+          {:ok, TailscaleAuthKey.t()} | {:error, term()}
+  def get_tailscale_auth_key(sandbox_or_result, opts \\ [])
+
+  def get_tailscale_auth_key({:ok, %__MODULE__{} = sandbox}, opts),
+    do: get_tailscale_auth_key(sandbox, opts)
+
+  def get_tailscale_auth_key(%__MODULE__{} = sandbox, opts) do
+    API.get_tailscale_auth_key(sandbox.id, opts)
+  end
+
+  @doc """
+  Stores a Tailscale auth key for the sandbox. The key is encrypted
+  client-side before transmission and must start with `"tskey-auth-"`.
+
+  ## Example
+
+      sandbox |> Sandbox.set_tailscale_auth_key("tskey-auth-xxxx")
+  """
+  @spec set_tailscale_auth_key(t() | {:ok, t()}, String.t(), keyword()) ::
+          {:ok, map()} | {:error, term()}
+  def set_tailscale_auth_key(sandbox_or_result, auth_key, opts \\ [])
+
+  def set_tailscale_auth_key({:ok, %__MODULE__{} = sandbox}, auth_key, opts),
+    do: set_tailscale_auth_key(sandbox, auth_key, opts)
+
+  def set_tailscale_auth_key(%__MODULE__{} = sandbox, auth_key, opts) do
+    API.put_tailscale_auth_key(sandbox.id, auth_key, opts)
   end
 
   # ---------------------------------------------------------------------------

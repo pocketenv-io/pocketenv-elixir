@@ -73,4 +73,69 @@ defmodule Sandbox.Types do
       }
     end
   end
+
+  defmodule Secret do
+    @moduledoc "Represents a secret stored in a sandbox."
+
+    @type t :: %__MODULE__{
+            id: String.t(),
+            name: String.t(),
+            created_at: String.t() | nil
+          }
+
+    defstruct [:id, :name, :created_at]
+
+    @doc "Build a Secret from the raw API map."
+    def from_map(map) when is_map(map) do
+      %__MODULE__{
+        id: map["id"],
+        name: map["name"],
+        created_at: map["createdAt"]
+      }
+    end
+  end
+
+  defmodule SshKey do
+    @moduledoc "Represents an SSH key pair associated with a sandbox."
+
+    @type t :: %__MODULE__{
+            id: String.t(),
+            private_key: String.t() | nil,
+            public_key: String.t() | nil,
+            created_at: String.t() | nil
+          }
+
+    defstruct [:id, :private_key, :public_key, :created_at]
+
+    @doc "Build an SshKey from the raw API map."
+    def from_map(map) when is_map(map) do
+      %__MODULE__{
+        id: map["id"],
+        private_key: map["privateKey"],
+        public_key: map["publicKey"],
+        created_at: map["createdAt"]
+      }
+    end
+  end
+
+  defmodule TailscaleAuthKey do
+    @moduledoc "Represents a Tailscale auth key associated with a sandbox."
+
+    @type t :: %__MODULE__{
+            id: String.t(),
+            auth_key: String.t() | nil,
+            created_at: String.t() | nil
+          }
+
+    defstruct [:id, :auth_key, :created_at]
+
+    @doc "Build a TailscaleAuthKey from the raw API map."
+    def from_map(map) when is_map(map) do
+      %__MODULE__{
+        id: map["id"],
+        auth_key: map["authKey"],
+        created_at: map["createdAt"]
+      }
+    end
+  end
 end
