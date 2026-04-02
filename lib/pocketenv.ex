@@ -49,8 +49,8 @@ defmodule Pocketenv do
   ## Options
 
     - `:base`       — AT-URI of the base sandbox image (default: `openclaw`).
-    - `:provider`   — `"cloudflare"` (default), `"daytona"`, `"deno"`,
-                      `"vercel"`, or `"sprites"`.
+    - `:provider`   — `:cloudflare` (default), `:daytona`, `:deno`,
+                      `:vercel`, or `:sprites`.
     - `:repo`       — GitHub repo URL to clone into the sandbox on start.
     - `:keep_alive` — keep the sandbox alive after the session ends.
     - `:token`      — bearer token override.

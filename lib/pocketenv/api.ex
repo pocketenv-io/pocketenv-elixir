@@ -17,7 +17,7 @@ defmodule Pocketenv.API do
       %{
         "name" => name,
         "base" => Keyword.get(opts, :base, @default_base),
-        "provider" => Keyword.get(opts, :provider, "cloudflare")
+        "provider" => opts |> Keyword.get(:provider, :cloudflare) |> to_string()
       }
       |> maybe_put("repo", Keyword.get(opts, :repo))
       |> maybe_put("keepAlive", Keyword.get(opts, :keep_alive))

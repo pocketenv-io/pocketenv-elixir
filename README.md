@@ -103,7 +103,7 @@ override the globally configured token for that single call.
 | Option | Type | Default | Description |
 |---|---|---|---|
 | `:base` | `string` | official `openclaw` image | AT-URI of the base sandbox image |
-| `:provider` | `string` | `"cloudflare"` | `"cloudflare"`, `"daytona"`, `"deno"`, `"vercel"`, or `"sprites"` |
+| `:provider` | `atom` | `:cloudflare` | `:cloudflare`, `:daytona`, `:deno`, `:vercel`, or `:sprites` |
 | `:repo` | `string` | `nil` | GitHub repo URL to clone on start |
 | `:keep_alive` | `boolean` | `nil` | Keep the sandbox alive after the session ends |
 | `:token` | `string` | global config | Bearer token override |
