@@ -1,5 +1,8 @@
 # pocketenv-elixir
 
+[![Package Version](https://img.shields.io/hexpm/v/pocketenv_ex)](https://hex.pm/packages/pocketenv_ex)
+[![test](https://github.com/pocketenv-io/pocketenv-elixir/actions/workflows/ci.yml/badge.svg)](https://github.com/pocketenv-io/pocketenv-elixir/actions/workflows/ci.yml)
+
 Elixir SDK for the [Pocketenv](https://pocketenv.io) sandbox platform.
 
 Pocketenv lets you spin up isolated cloud sandbox environments on demand.
