@@ -46,7 +46,7 @@ defmodule Pocketenv.Crypto do
     {eph_pk, eph_sk} = :crypto.generate_key(:ecdh, :x25519)
 
     # nonce = BLAKE2b-24(eph_pk || recipient_pk) — matches libsodium exactly
-    nonce = :crypto.hash({:blake2b, 24}, eph_pk <> recipient_pk)
+    nonce = Blake2.hash2b(eph_pk <> recipient_pk, 24)
 
     {ciphertext, _state} = Kcl.box(message, nonce, eph_sk, recipient_pk)
 

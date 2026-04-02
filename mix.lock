@@ -1,4 +1,5 @@
 %{
+  "blake2": {:hex, :blake2, "1.0.4", "8263c69a191142922bc2510f1ffc0de0ae96e8c3bd5e2ad3fac7e87aed94c8b1", [:mix], [], "hexpm", "e9f4120d163ba14d86304195e50745fa18483e6ad2be94c864ae449bbdd6a189"},
   "chacha20": {:hex, :chacha20, "0.3.6", "6cef6d6cea44351c6009576ed4a78791e3df818ce511e92aa6be8ca058516edf", [:mix], [], "hexpm", "40bc6b1f4816661c07a3244d46d74640f108f69eb61f96d2dd22dcba0e7fca38"},
   "curve25519": {:hex, :curve25519, "0.1.4", "819382affdc8d6c87567cec071fedb91d94ba81581f51413809e8cb945527988", [:mix], [], "hexpm", "3460590592da61d5d0c309e2ec469290963129bfb6ee6e5f692ae8e0334161b3"},
   "earmark_parser": {:hex, :earmark_parser, "1.4.44", "f20830dd6b5c77afe2b063777ddbbff09f9759396500cdbe7523efd58d7a339c", [:mix], [], "hexpm", "4778ac752b4701a5599215f7030989c989ffdc4f6df457c5f36938cc2d2a2750"},

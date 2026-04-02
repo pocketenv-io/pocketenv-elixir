@@ -27,6 +27,7 @@ defmodule Pocketenv.MixProject do
       {:req, "~> 0.5"},
       {:jason, "~> 1.4"},
       {:kcl, "~> 0.1"},
+      {:blake2, "~> 1.0"},
       {:ex_doc, "~> 0.31", only: :dev, runtime: false}
     ]
   end
