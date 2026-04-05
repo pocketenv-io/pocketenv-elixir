@@ -202,6 +202,39 @@ IO.puts("Open VS Code at: #{url}")
 
 If VS Code is already exposed the existing URL is returned immediately.
 
+#### Copy
+
+Transfer files and directories between your local machine and a sandbox, or
+directly between two sandboxes.
+
+```elixir
+# Upload a local directory to the sandbox
+:ok = sandbox |> Sandbox.upload("./my-project", "/workspace")
+
+# Upload a single file
+:ok = sandbox |> Sandbox.upload("./config.json", "/workspace")
+
+# Download a path from the sandbox to a local directory
+:ok = sandbox |> Sandbox.download("/workspace/output", "./output")
+
+# Copy a path from one sandbox to another (no local I/O)
+:ok = sandbox |> Sandbox.copy_to(other_sandbox.id, "/workspace", "/workspace")
+```
+
+`upload/4` respects `.pocketenvignore`, `.gitignore`, `.npmignore`, and
+`.dockerignore` files found anywhere under the source directory, so files
+like `node_modules/` and build artefacts are excluded automatically.
+
+| Function | Returns | Description |
+|---|---|---|
+| `Sandbox.upload(sandbox, local_path, sandbox_path, opts)` | `:ok` | Compress and upload a local file or directory to the sandbox |
+| `Sandbox.download(sandbox, sandbox_path, local_path, opts)` | `:ok` | Download a path from the sandbox and extract it locally |
+| `Sandbox.copy_to(sandbox, dest_id, src_path, dest_path, opts)` | `:ok` | Copy a path from this sandbox to another sandbox |
+
+The storage endpoint defaults to `https://sandbox.pocketenv.io` and can be
+overridden via the `:storage_url` app config key or the
+`POCKETENV_STORAGE_URL` environment variable.
+
 ---
 
 ## Types
