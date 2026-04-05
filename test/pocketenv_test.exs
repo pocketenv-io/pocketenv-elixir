@@ -502,7 +502,10 @@ defmodule PocketenvTest do
 
   describe "Pocketenv.Ignore.load/1" do
     test "loads patterns from .gitignore in a temp directory" do
-      dir = System.tmp_dir!() |> Path.join("pocketenv_ignore_test_#{System.unique_integer([:positive])}")
+      dir =
+        System.tmp_dir!()
+        |> Path.join("pocketenv_ignore_test_#{System.unique_integer([:positive])}")
+
       File.mkdir_p!(dir)
       File.write!(Path.join(dir, ".gitignore"), "node_modules\n*.log\n")
       on_exit(fn -> File.rm_rf(dir) end)
@@ -516,7 +519,10 @@ defmodule PocketenvTest do
     end
 
     test "loads patterns from nested ignore files with correct scope" do
-      dir = System.tmp_dir!() |> Path.join("pocketenv_ignore_nested_#{System.unique_integer([:positive])}")
+      dir =
+        System.tmp_dir!()
+        |> Path.join("pocketenv_ignore_nested_#{System.unique_integer([:positive])}")
+
       sub = Path.join(dir, "packages/ui")
       File.mkdir_p!(sub)
       File.write!(Path.join(dir, ".gitignore"), "*.log\n")
@@ -536,7 +542,10 @@ defmodule PocketenvTest do
     end
 
     test "returns empty list for a directory with no ignore files" do
-      dir = System.tmp_dir!() |> Path.join("pocketenv_no_ignore_#{System.unique_integer([:positive])}")
+      dir =
+        System.tmp_dir!()
+        |> Path.join("pocketenv_no_ignore_#{System.unique_integer([:positive])}")
+
       File.mkdir_p!(dir)
       File.write!(Path.join(dir, "README.md"), "hello")
       on_exit(fn -> File.rm_rf(dir) end)
@@ -623,7 +632,13 @@ defmodule PocketenvTest do
   describe "Sandbox copy methods – {:ok, struct} passthrough" do
     test "upload/4 accepts {:ok, %Sandbox{}} and does not raise FunctionClauseError" do
       sandbox = %Sandbox{id: "sbx-1", name: "test", status: :running, installs: 0}
-      tmp = Path.join(System.tmp_dir!(), "pocketenv_test_upload_#{:erlang.unique_integer([:positive])}.txt")
+
+      tmp =
+        Path.join(
+          System.tmp_dir!(),
+          "pocketenv_test_upload_#{:erlang.unique_integer([:positive])}.txt"
+        )
+
       File.write!(tmp, "hello")
       on_exit(fn -> File.rm(tmp) end)
 

@@ -42,10 +42,12 @@ defmodule Pocketenv.Ignore do
     |> Enum.filter(fn rel -> MapSet.member?(@ignore_filenames, Path.basename(rel)) end)
     |> Enum.flat_map(fn rel ->
       full = Path.join(root, rel)
-      dir = case Path.dirname(rel) do
-        "." -> ""
-        d -> d
-      end
+
+      dir =
+        case Path.dirname(rel) do
+          "." -> ""
+          d -> d
+        end
 
       case File.read(full) do
         {:ok, content} -> [{dir, parse(content)}]
