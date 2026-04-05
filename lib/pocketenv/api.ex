@@ -308,6 +308,29 @@ defmodule Pocketenv.API do
   end
 
   # ---------------------------------------------------------------------------
+  # Copy
+  # ---------------------------------------------------------------------------
+
+  def push_directory(sandbox_id, directory_path, opts \\ []) do
+    case Client.post(
+           "/xrpc/io.pocketenv.sandbox.pushDirectory",
+           %{"sandboxId" => sandbox_id, "directoryPath" => directory_path},
+           take_token(opts)
+         ) do
+      {:ok, %{"uuid" => uuid}} -> {:ok, uuid}
+      {:error, _} = err -> err
+    end
+  end
+
+  def pull_directory(sandbox_id, uuid, directory_path, opts \\ []) do
+    Client.post(
+      "/xrpc/io.pocketenv.sandbox.pullDirectory",
+      %{"uuid" => uuid, "sandboxId" => sandbox_id, "directoryPath" => directory_path},
+      take_token(opts)
+    )
+  end
+
+  # ---------------------------------------------------------------------------
   # Private helpers
   # ---------------------------------------------------------------------------
 

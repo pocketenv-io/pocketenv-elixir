@@ -375,6 +375,295 @@ defmodule PocketenvTest do
   end
 
   # ---------------------------------------------------------------------------
+  # Pocketenv.Ignore
+  # ---------------------------------------------------------------------------
+
+  describe "Pocketenv.Ignore.ignored?/2 – simple name patterns" do
+    test "ignores an exact filename match" do
+      ctx = build_contexts("", ".DS_Store")
+      assert Pocketenv.Ignore.ignored?(ctx, ".DS_Store")
+    end
+
+    test "ignores the filename at any depth" do
+      ctx = build_contexts("", ".DS_Store")
+      assert Pocketenv.Ignore.ignored?(ctx, "a/b/.DS_Store")
+    end
+
+    test "does not ignore a non-matching file" do
+      ctx = build_contexts("", ".DS_Store")
+      refute Pocketenv.Ignore.ignored?(ctx, "README.md")
+    end
+  end
+
+  describe "Pocketenv.Ignore.ignored?/2 – glob patterns" do
+    test "*.log matches a log file at root" do
+      ctx = build_contexts("", "*.log")
+      assert Pocketenv.Ignore.ignored?(ctx, "debug.log")
+    end
+
+    test "*.log matches a log file at any depth via suffix check" do
+      ctx = build_contexts("", "*.log")
+      assert Pocketenv.Ignore.ignored?(ctx, "logs/debug.log")
+      assert Pocketenv.Ignore.ignored?(ctx, "a/b/c/server.log")
+    end
+
+    test "*.log does not match unrelated extensions" do
+      ctx = build_contexts("", "*.log")
+      refute Pocketenv.Ignore.ignored?(ctx, "app.ex")
+      refute Pocketenv.Ignore.ignored?(ctx, "logs/README.md")
+    end
+
+    test "? matches exactly one non-slash character" do
+      ctx = build_contexts("", "foo?.txt")
+      assert Pocketenv.Ignore.ignored?(ctx, "fooa.txt")
+      refute Pocketenv.Ignore.ignored?(ctx, "foo.txt")
+      refute Pocketenv.Ignore.ignored?(ctx, "fooab.txt")
+    end
+  end
+
+  describe "Pocketenv.Ignore.ignored?/2 – directory patterns" do
+    test "directory name ignores the directory itself" do
+      ctx = build_contexts("", "node_modules")
+      assert Pocketenv.Ignore.ignored?(ctx, "node_modules")
+    end
+
+    test "directory name ignores all contents" do
+      ctx = build_contexts("", "node_modules")
+      assert Pocketenv.Ignore.ignored?(ctx, "node_modules/index.js")
+      assert Pocketenv.Ignore.ignored?(ctx, "node_modules/lodash/index.js")
+    end
+
+    test "directory name with trailing slash ignores all contents" do
+      ctx = build_contexts("", "dist/")
+      assert Pocketenv.Ignore.ignored?(ctx, "dist/bundle.js")
+      assert Pocketenv.Ignore.ignored?(ctx, "dist/a/b.js")
+    end
+
+    test "directory pattern does not match unrelated names" do
+      ctx = build_contexts("", "node_modules")
+      refute Pocketenv.Ignore.ignored?(ctx, "src/index.js")
+      refute Pocketenv.Ignore.ignored?(ctx, "not_node_modules/foo.js")
+    end
+  end
+
+  describe "Pocketenv.Ignore.ignored?/2 – double-star patterns" do
+    test "**/.DS_Store matches at any depth" do
+      ctx = build_contexts("", "**/.DS_Store")
+      assert Pocketenv.Ignore.ignored?(ctx, ".DS_Store")
+      assert Pocketenv.Ignore.ignored?(ctx, "a/.DS_Store")
+      assert Pocketenv.Ignore.ignored?(ctx, "a/b/c/.DS_Store")
+    end
+
+    test "build/** ignores everything under build/" do
+      ctx = build_contexts("", "build/**")
+      assert Pocketenv.Ignore.ignored?(ctx, "build/app.js")
+      assert Pocketenv.Ignore.ignored?(ctx, "build/nested/app.js")
+    end
+
+    test "build/** does not match sibling directories" do
+      ctx = build_contexts("", "build/**")
+      refute Pocketenv.Ignore.ignored?(ctx, "src/app.js")
+    end
+  end
+
+  describe "Pocketenv.Ignore.ignored?/2 – negation" do
+    test "! un-ignores a previously matched path" do
+      ctx = build_contexts("", "*.log\n!important.log")
+      assert Pocketenv.Ignore.ignored?(ctx, "debug.log")
+      refute Pocketenv.Ignore.ignored?(ctx, "important.log")
+    end
+
+    test "last matching pattern wins" do
+      # ignore all, then keep .env, then ignore .env again
+      ctx = build_contexts("", "*.env\n!.env\n.env")
+      assert Pocketenv.Ignore.ignored?(ctx, ".env")
+    end
+  end
+
+  describe "Pocketenv.Ignore.ignored?/2 – sub-directory context" do
+    test "a context scoped to a subdirectory only applies within that directory" do
+      ctx = build_contexts("src", "*.log")
+      assert Pocketenv.Ignore.ignored?(ctx, "src/debug.log")
+      refute Pocketenv.Ignore.ignored?(ctx, "lib/debug.log")
+    end
+  end
+
+  describe "Pocketenv.Ignore.ignored?/2 – comments and blank lines" do
+    test "lines starting with # are ignored" do
+      ctx = build_contexts("", "# this is a comment\n*.log")
+      assert Pocketenv.Ignore.ignored?(ctx, "app.log")
+    end
+
+    test "blank lines are ignored" do
+      ctx = build_contexts("", "\n\n*.log\n\n")
+      assert Pocketenv.Ignore.ignored?(ctx, "app.log")
+    end
+  end
+
+  describe "Pocketenv.Ignore.load/1" do
+    test "loads patterns from .gitignore in a temp directory" do
+      dir = System.tmp_dir!() |> Path.join("pocketenv_ignore_test_#{System.unique_integer([:positive])}")
+      File.mkdir_p!(dir)
+      File.write!(Path.join(dir, ".gitignore"), "node_modules\n*.log\n")
+      on_exit(fn -> File.rm_rf(dir) end)
+
+      contexts = Pocketenv.Ignore.load(dir)
+      assert length(contexts) == 1
+
+      assert Pocketenv.Ignore.ignored?(contexts, "node_modules/index.js")
+      assert Pocketenv.Ignore.ignored?(contexts, "app.log")
+      refute Pocketenv.Ignore.ignored?(contexts, "src/app.ex")
+    end
+
+    test "loads patterns from nested ignore files with correct scope" do
+      dir = System.tmp_dir!() |> Path.join("pocketenv_ignore_nested_#{System.unique_integer([:positive])}")
+      sub = Path.join(dir, "packages/ui")
+      File.mkdir_p!(sub)
+      File.write!(Path.join(dir, ".gitignore"), "*.log\n")
+      File.write!(Path.join(sub, ".gitignore"), "dist\n")
+      on_exit(fn -> File.rm_rf(dir) end)
+
+      contexts = Pocketenv.Ignore.load(dir)
+      assert length(contexts) == 2
+
+      # Root .gitignore applies everywhere
+      assert Pocketenv.Ignore.ignored?(contexts, "app.log")
+      assert Pocketenv.Ignore.ignored?(contexts, "packages/ui/app.log")
+
+      # Nested .gitignore only applies within its directory
+      assert Pocketenv.Ignore.ignored?(contexts, "packages/ui/dist/bundle.js")
+      refute Pocketenv.Ignore.ignored?(contexts, "dist/bundle.js")
+    end
+
+    test "returns empty list for a directory with no ignore files" do
+      dir = System.tmp_dir!() |> Path.join("pocketenv_no_ignore_#{System.unique_integer([:positive])}")
+      File.mkdir_p!(dir)
+      File.write!(Path.join(dir, "README.md"), "hello")
+      on_exit(fn -> File.rm_rf(dir) end)
+
+      assert Pocketenv.Ignore.load(dir) == []
+    end
+
+    test "skips unreadable ignore files gracefully" do
+      # An empty context list is acceptable when no files can be read
+      contexts = Pocketenv.Ignore.load("/nonexistent/path")
+      assert contexts == []
+    end
+  end
+
+  # Builds a single ignore context directly from a pattern string,
+  # bypassing filesystem access.
+  defp build_contexts(dir, pattern_content) do
+    contexts = Pocketenv.Ignore.load_from_string(dir, pattern_content)
+    contexts
+  end
+
+  # ---------------------------------------------------------------------------
+  # Pocketenv.Copy.storage_url/0
+  # ---------------------------------------------------------------------------
+
+  describe "Pocketenv.Copy.storage_url/0" do
+    test "returns the default storage URL when no config is present" do
+      prev = Application.get_env(:pocketenv_ex, :storage_url)
+      Application.delete_env(:pocketenv_ex, :storage_url)
+      System.delete_env("POCKETENV_STORAGE_URL")
+      on_exit(fn -> if prev, do: Application.put_env(:pocketenv_ex, :storage_url, prev) end)
+
+      assert Pocketenv.Copy.storage_url() == "https://sandbox.pocketenv.io"
+    end
+
+    test "respects the POCKETENV_STORAGE_URL environment variable" do
+      prev = Application.get_env(:pocketenv_ex, :storage_url)
+      Application.delete_env(:pocketenv_ex, :storage_url)
+      on_exit(fn -> if prev, do: Application.put_env(:pocketenv_ex, :storage_url, prev) end)
+
+      System.put_env("POCKETENV_STORAGE_URL", "https://custom.storage.example.com")
+      on_exit(fn -> System.delete_env("POCKETENV_STORAGE_URL") end)
+
+      assert Pocketenv.Copy.storage_url() == "https://custom.storage.example.com"
+    end
+
+    test "application config takes precedence over environment variable" do
+      System.put_env("POCKETENV_STORAGE_URL", "https://env.storage.example.com")
+      on_exit(fn -> System.delete_env("POCKETENV_STORAGE_URL") end)
+
+      Application.put_env(:pocketenv_ex, :storage_url, "https://config.storage.example.com")
+      on_exit(fn -> Application.delete_env(:pocketenv_ex, :storage_url) end)
+
+      assert Pocketenv.Copy.storage_url() == "https://config.storage.example.com"
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # Sandbox copy methods — API surface
+  # ---------------------------------------------------------------------------
+
+  describe "Sandbox copy methods – arities" do
+    setup do
+      fns = Sandbox.__info__(:functions)
+      {:ok, fns: fns}
+    end
+
+    test "upload/4 is defined", %{fns: fns} do
+      assert {:upload, 3} in fns
+      assert {:upload, 4} in fns
+    end
+
+    test "download/4 is defined", %{fns: fns} do
+      assert {:download, 3} in fns
+      assert {:download, 4} in fns
+    end
+
+    test "copy_to/5 is defined", %{fns: fns} do
+      assert {:copy_to, 4} in fns
+      assert {:copy_to, 5} in fns
+    end
+  end
+
+  describe "Sandbox copy methods – {:ok, struct} passthrough" do
+    test "upload/4 accepts {:ok, %Sandbox{}} and does not raise FunctionClauseError" do
+      sandbox = %Sandbox{id: "sbx-1", name: "test", status: :running, installs: 0}
+      tmp = Path.join(System.tmp_dir!(), "pocketenv_test_upload_#{:erlang.unique_integer([:positive])}.txt")
+      File.write!(tmp, "hello")
+      on_exit(fn -> File.rm(tmp) end)
+
+      # {:ok, struct} must not raise FunctionClauseError; it will fail at the HTTP layer
+      assert match?({:error, _}, Sandbox.upload({:ok, sandbox}, tmp, "/remote"))
+    end
+
+    test "download/4 accepts {:ok, %Sandbox{}} and does not raise FunctionClauseError" do
+      sandbox = %Sandbox{id: "sbx-1", name: "test", status: :running, installs: 0}
+      # Fails at HTTP layer (no token / no network), not at pattern match
+      assert match?({:error, _}, Sandbox.download({:ok, sandbox}, "/remote", System.tmp_dir!()))
+    end
+
+    test "copy_to/5 accepts {:ok, %Sandbox{}} and does not raise FunctionClauseError" do
+      sandbox = %Sandbox{id: "sbx-1", name: "test", status: :running, installs: 0}
+      assert match?({:error, _}, Sandbox.copy_to({:ok, sandbox}, "sbx-2", "/src", "/dest"))
+    end
+  end
+
+  describe "Sandbox copy methods – error propagation" do
+    test "upload/4 raises FunctionClauseError on {:error, reason}" do
+      assert_raise FunctionClauseError, fn ->
+        Sandbox.upload({:error, :not_found}, "/local", "/remote")
+      end
+    end
+
+    test "download/4 raises FunctionClauseError on {:error, reason}" do
+      assert_raise FunctionClauseError, fn ->
+        Sandbox.download({:error, :not_found}, "/remote", "/local")
+      end
+    end
+
+    test "copy_to/5 raises FunctionClauseError on {:error, reason}" do
+      assert_raise FunctionClauseError, fn ->
+        Sandbox.copy_to({:error, :not_found}, "sbx-2", "/src", "/dest")
+      end
+    end
+  end
+
+  # ---------------------------------------------------------------------------
   # Pocketenv public API surface
   # ---------------------------------------------------------------------------
 

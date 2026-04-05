@@ -513,6 +513,83 @@ defmodule Sandbox do
   end
 
   # ---------------------------------------------------------------------------
+  # Copy
+  # ---------------------------------------------------------------------------
+
+  @doc """
+  Uploads a local file or directory to a path inside this sandbox.
+
+  The local path is compressed into a tar.gz archive, uploaded to storage,
+  and then extracted by the sandbox at `sandbox_path`.
+
+  ## Options
+
+    - `:token` — bearer token override.
+
+  ## Example
+
+      sandbox |> Sandbox.upload("./my-project", "/workspace")
+      sandbox |> Sandbox.upload("./config.json", "/app/config.json")
+  """
+  @spec upload(t() | {:ok, t()}, String.t(), String.t(), keyword()) :: :ok | {:error, term()}
+  def upload(sandbox_or_result, local_path, sandbox_path, opts \\ [])
+
+  def upload({:ok, %__MODULE__{} = sandbox}, local_path, sandbox_path, opts),
+    do: upload(sandbox, local_path, sandbox_path, opts)
+
+  def upload(%__MODULE__{} = sandbox, local_path, sandbox_path, opts) do
+    Pocketenv.Copy.upload(sandbox.id, local_path, sandbox_path, opts)
+  end
+
+  @doc """
+  Downloads a path from inside this sandbox to a local directory.
+
+  The sandbox compresses `sandbox_path` into a tar.gz archive, which is then
+  downloaded and extracted to `local_path`.
+
+  ## Options
+
+    - `:token` — bearer token override.
+
+  ## Example
+
+      sandbox |> Sandbox.download("/workspace", "./output")
+  """
+  @spec download(t() | {:ok, t()}, String.t(), String.t(), keyword()) :: :ok | {:error, term()}
+  def download(sandbox_or_result, sandbox_path, local_path, opts \\ [])
+
+  def download({:ok, %__MODULE__{} = sandbox}, sandbox_path, local_path, opts),
+    do: download(sandbox, sandbox_path, local_path, opts)
+
+  def download(%__MODULE__{} = sandbox, sandbox_path, local_path, opts) do
+    Pocketenv.Copy.download(sandbox.id, sandbox_path, local_path, opts)
+  end
+
+  @doc """
+  Copies a path from this sandbox to a path inside another sandbox.
+
+  No local I/O is involved — the transfer goes directly through storage.
+
+  ## Options
+
+    - `:token` — bearer token override.
+
+  ## Example
+
+      sandbox |> Sandbox.copy_to(other_sandbox_id, "/src", "/dest")
+  """
+  @spec copy_to(t() | {:ok, t()}, String.t(), String.t(), String.t(), keyword()) ::
+          :ok | {:error, term()}
+  def copy_to(sandbox_or_result, dest_sandbox_id, src_path, dest_path, opts \\ [])
+
+  def copy_to({:ok, %__MODULE__{} = sandbox}, dest_sandbox_id, src_path, dest_path, opts),
+    do: copy_to(sandbox, dest_sandbox_id, src_path, dest_path, opts)
+
+  def copy_to(%__MODULE__{} = sandbox, dest_sandbox_id, src_path, dest_path, opts) do
+    Pocketenv.Copy.to(sandbox.id, dest_sandbox_id, src_path, dest_path, opts)
+  end
+
+  # ---------------------------------------------------------------------------
   # Private
   # ---------------------------------------------------------------------------
 

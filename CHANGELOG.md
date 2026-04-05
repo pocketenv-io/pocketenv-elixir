@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.8] - 2026-04-05
+
+### Added
+- Copy interface: `Sandbox.upload/4`, `Sandbox.download/4`, `Sandbox.copy_to/5` for transferring files between local paths and sandboxes, or between two sandboxes
+- `Pocketenv.Copy` module handling tar.gz compression/decompression (via `:erl_tar`), multipart upload to storage, and binary download from storage
+- `Pocketenv.Ignore` module: gitignore-style filtering applied during directory compression, respecting `.pocketenvignore`, `.gitignore`, `.npmignore`, and `.dockerignore` files at any depth; supports `*`, `**`, `?`, `[...]` globs, trailing `/` directory patterns, and `!` negation
+- `POCKETENV_STORAGE_URL` environment variable and `:storage_url` app config key for overriding the storage endpoint (default: `https://sandbox.pocketenv.io`)
+
 ## [0.1.7] - 2026-04-02
 
 ### Fixed
@@ -55,6 +63,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - MIT License
 - Package description in `mix.exs`
 
+[0.1.8]: https://github.com/pocketenv-io/pocketenv-elixir/compare/v0.1.7...v0.1.8
 [0.1.7]: https://github.com/pocketenv-io/pocketenv-elixir/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/pocketenv-io/pocketenv-elixir/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/pocketenv-io/pocketenv-elixir/compare/v0.1.4...v0.1.5
