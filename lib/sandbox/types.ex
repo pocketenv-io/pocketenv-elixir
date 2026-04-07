@@ -138,4 +138,29 @@ defmodule Sandbox.Types do
       }
     end
   end
+
+  defmodule Backup do
+    @moduledoc "Represents a sandbox backup."
+
+    @type t :: %__MODULE__{
+            id: String.t(),
+            directory: String.t(),
+            description: String.t() | nil,
+            expires_at: String.t() | nil,
+            created_at: String.t()
+          }
+
+    defstruct [:id, :directory, :description, :expires_at, :created_at]
+
+    @doc "Build a Backup from the raw API map."
+    def from_map(map) when is_map(map) do
+      %__MODULE__{
+        id: map["id"],
+        directory: map["directory"],
+        description: map["description"],
+        expires_at: map["expiresAt"],
+        created_at: map["createdAt"]
+      }
+    end
+  end
 end

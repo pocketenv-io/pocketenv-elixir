@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.9] - 2026-04-07
+
+### Added
+- Backup management: `Pocketenv.create_backup/3`, `list_backups/2`, `restore_backup/2` and pipe-friendly `Sandbox.create_backup/3`, `Sandbox.list_backups/2`, `Sandbox.restore_backup/3`
+- `Sandbox.Types.Backup` struct with `id`, `directory`, `description`, `expires_at`, and `created_at` fields
+- Optional `:description` and `:ttl` options for `create_backup`
+
 ## [0.1.8] - 2026-04-05
 
 ### Added
@@ -63,6 +70,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - MIT License
 - Package description in `mix.exs`
 
+[0.1.9]: https://github.com/pocketenv-io/pocketenv-elixir/compare/v0.1.8...v0.1.9
 [0.1.8]: https://github.com/pocketenv-io/pocketenv-elixir/compare/v0.1.7...v0.1.8
 [0.1.7]: https://github.com/pocketenv-io/pocketenv-elixir/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/pocketenv-io/pocketenv-elixir/compare/v0.1.5...v0.1.6

@@ -259,4 +259,47 @@ defmodule Pocketenv do
   @spec put_tailscale_auth_key(String.t(), String.t(), keyword()) ::
           {:ok, map()} | {:error, term()}
   defdelegate put_tailscale_auth_key(sandbox_id, auth_key, opts \\ []), to: API
+
+  # ---------------------------------------------------------------------------
+  # Backups
+  # ---------------------------------------------------------------------------
+
+  @doc """
+  Creates a backup of a directory inside a sandbox.
+
+  ## Options
+
+    - `:description` — a human-readable label for the backup.
+    - `:ttl`         — time-to-live in seconds before the backup expires.
+    - `:token`       — bearer token override.
+
+  ## Example
+
+      {:ok, _} = Pocketenv.create_backup(sandbox.id, "/workspace")
+      {:ok, _} = Pocketenv.create_backup(sandbox.id, "/workspace", description: "before migration")
+  """
+  @spec create_backup(String.t(), String.t(), keyword()) ::
+          {:ok, map()} | {:error, term()}
+  defdelegate create_backup(sandbox_id, directory, opts \\ []), to: API
+
+  @doc """
+  Lists all backups for a sandbox.
+
+  ## Example
+
+      {:ok, backups} = Pocketenv.list_backups(sandbox.id)
+  """
+  @spec list_backups(String.t(), keyword()) ::
+          {:ok, [Sandbox.Types.Backup.t()]} | {:error, term()}
+  defdelegate list_backups(sandbox_id, opts \\ []), to: API
+
+  @doc """
+  Restores a backup by its id.
+
+  ## Example
+
+      {:ok, _} = Pocketenv.restore_backup("backup-id")
+  """
+  @spec restore_backup(String.t(), keyword()) :: {:ok, map()} | {:error, term()}
+  defdelegate restore_backup(backup_id, opts \\ []), to: API
 end

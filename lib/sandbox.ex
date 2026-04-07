@@ -31,7 +31,7 @@ defmodule Sandbox do
   """
 
   alias Pocketenv.API
-  alias Sandbox.Types.{ExecResult, Port, Profile, Secret, SshKey, TailscaleAuthKey}
+  alias Sandbox.Types.{Backup, ExecResult, Port, Profile, Secret, SshKey, TailscaleAuthKey}
 
   @type status :: :running | :stopped | :unknown
 
@@ -510,6 +510,85 @@ defmodule Sandbox do
 
   def set_tailscale_auth_key(%__MODULE__{} = sandbox, auth_key, opts) do
     API.put_tailscale_auth_key(sandbox.id, auth_key, opts)
+  end
+
+  # ---------------------------------------------------------------------------
+  # Backups
+  # ---------------------------------------------------------------------------
+
+  @doc """
+  Creates a backup of a directory inside the sandbox.
+
+  ## Parameters
+
+    - `directory` — the sandbox path to back up (e.g. `"/workspace"`).
+
+  ## Options
+
+    - `:description` — a human-readable label for the backup.
+    - `:ttl`         — time-to-live in seconds before the backup expires.
+    - `:token`       — bearer token override.
+
+  ## Example
+
+      sandbox |> Sandbox.create_backup("/workspace")
+      sandbox |> Sandbox.create_backup("/workspace", description: "before migration", ttl: 86400)
+  """
+  @spec create_backup(t() | {:ok, t()}, String.t(), keyword()) ::
+          {:ok, map()} | {:error, term()}
+  def create_backup(sandbox_or_result, directory, opts \\ [])
+
+  def create_backup({:ok, %__MODULE__{} = sandbox}, directory, opts),
+    do: create_backup(sandbox, directory, opts)
+
+  def create_backup(%__MODULE__{} = sandbox, directory, opts) do
+    API.create_backup(sandbox.id, directory, opts)
+  end
+
+  @doc """
+  Lists all backups for the sandbox.
+
+  ## Options
+
+    - `:token` — bearer token override.
+
+  ## Returns
+
+    `{:ok, [%Sandbox.Types.Backup{}]}`
+
+  ## Example
+
+      {:ok, backups} = sandbox |> Sandbox.list_backups()
+  """
+  @spec list_backups(t() | {:ok, t()}, keyword()) ::
+          {:ok, [Backup.t()]} | {:error, term()}
+  def list_backups(sandbox_or_result, opts \\ [])
+  def list_backups({:ok, %__MODULE__{} = sandbox}, opts), do: list_backups(sandbox, opts)
+
+  def list_backups(%__MODULE__{} = sandbox, opts) do
+    API.list_backups(sandbox.id, opts)
+  end
+
+  @doc """
+  Restores a backup by its id.
+
+  ## Options
+
+    - `:token` — bearer token override.
+
+  ## Example
+
+      sandbox |> Sandbox.restore_backup("backup-id")
+  """
+  @spec restore_backup(t() | {:ok, t()}, String.t(), keyword()) ::
+          {:ok, map()} | {:error, term()}
+  def restore_backup(sandbox_or_result, backup_id, opts \\ [])
+
+  def restore_backup({:ok, %__MODULE__{} = sandbox}, backup_id, opts),
+    do: restore_backup(sandbox, backup_id, opts)
+
+  def restore_backup(%__MODULE__{}, backup_id, opts) do
+    API.restore_backup(backup_id, opts)
   end
 
   # ---------------------------------------------------------------------------

@@ -5,7 +5,7 @@ defmodule Pocketenv.API do
 
   alias Pocketenv.Client
   alias Pocketenv.Crypto
-  alias Sandbox.Types.{ExecResult, Port, Profile, Secret, SshKey, TailscaleAuthKey}
+  alias Sandbox.Types.{Backup, ExecResult, Port, Profile, Secret, SshKey, TailscaleAuthKey}
 
   @default_base "at://did:plc:aturpi2ls3yvsmhc6wybomun/io.pocketenv.sandbox/openclaw"
 
@@ -303,6 +303,41 @@ defmodule Pocketenv.API do
     Client.post(
       "/xrpc/io.pocketenv.sandbox.putTailscaleAuthKey",
       %{"id" => sandbox_id, "authKey" => encrypted, "redacted" => redacted},
+      take_token(opts)
+    )
+  end
+
+  # ---------------------------------------------------------------------------
+  # Backups
+  # ---------------------------------------------------------------------------
+
+  def create_backup(sandbox_id, directory, opts \\ []) do
+    body =
+      %{"directory" => directory}
+      |> maybe_put("description", Keyword.get(opts, :description))
+      |> maybe_put("ttl", Keyword.get(opts, :ttl))
+
+    Client.post(
+      "/xrpc/io.pocketenv.sandbox.createBackup",
+      body,
+      take_token(opts) ++ [params: %{"id" => sandbox_id}]
+    )
+  end
+
+  def list_backups(sandbox_id, opts \\ []) do
+    case Client.get(
+           "/xrpc/io.pocketenv.sandbox.getBackups",
+           take_token(opts) ++ [params: %{"id" => sandbox_id}]
+         ) do
+      {:ok, %{"backups" => items}} -> {:ok, Enum.map(items, &Backup.from_map/1)}
+      {:error, _} = err -> err
+    end
+  end
+
+  def restore_backup(backup_id, opts \\ []) do
+    Client.post(
+      "/xrpc/io.pocketenv.sandbox.restoreBackup",
+      %{"backupId" => backup_id},
       take_token(opts)
     )
   end

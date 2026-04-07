@@ -235,6 +235,34 @@ The storage endpoint defaults to `https://sandbox.pocketenv.io` and can be
 overridden via the `:storage_url` app config key or the
 `POCKETENV_STORAGE_URL` environment variable.
 
+#### Backups
+
+```elixir
+# Create a backup of a directory
+{:ok, _} = sandbox |> Sandbox.create_backup("/workspace")
+{:ok, _} = sandbox |> Sandbox.create_backup("/workspace", description: "before migration", ttl: 86400)
+
+# List all backups
+{:ok, backups} = sandbox |> Sandbox.list_backups()
+
+# Restore a backup by id
+{:ok, _} = sandbox |> Sandbox.restore_backup("backup-id")
+```
+
+| Function | Returns | Description |
+|---|---|---|
+| `Sandbox.create_backup(sandbox, directory, opts)` | `{:ok, map()}` | Create a backup of a directory inside the sandbox |
+| `Sandbox.list_backups(sandbox, opts)` | `{:ok, [%Backup{}]}` | List all backups for the sandbox |
+| `Sandbox.restore_backup(sandbox, backup_id, opts)` | `{:ok, map()}` | Restore a backup by id |
+
+##### `create_backup/3` options
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `:description` | `string` | `nil` | Human-readable label for the backup |
+| `:ttl` | `integer` | `nil` | Time-to-live in seconds before the backup expires |
+| `:token` | `string` | global config | Bearer token override |
+
 ---
 
 ## Types
@@ -305,6 +333,20 @@ Returned by `Pocketenv.me/1` and `Pocketenv.get_profile/2`.
   avatar:       String.t() | nil,
   created_at:   String.t() | nil,
   updated_at:   String.t() | nil
+}
+```
+
+### `%Sandbox.Types.Backup{}`
+
+Returned in the list by `Sandbox.list_backups/2` and `Pocketenv.list_backups/2`.
+
+```
+%Sandbox.Types.Backup{
+  id:          String.t(),
+  directory:   String.t(),
+  description: String.t() | nil,
+  expires_at:  String.t() | nil,
+  created_at:  String.t()
 }
 ```
 

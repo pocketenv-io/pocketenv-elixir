@@ -679,6 +679,109 @@ defmodule PocketenvTest do
   end
 
   # ---------------------------------------------------------------------------
+  # Sandbox.Types.Backup
+  # ---------------------------------------------------------------------------
+
+  describe "Sandbox.Types.Backup.from_map/1" do
+    test "parses a backup with all fields" do
+      raw = %{
+        "id" => "bkp-001",
+        "directory" => "/workspace",
+        "description" => "before migration",
+        "expiresAt" => "2024-12-31T00:00:00Z",
+        "createdAt" => "2024-06-01T00:00:00Z"
+      }
+
+      backup = Sandbox.Types.Backup.from_map(raw)
+
+      assert backup.id == "bkp-001"
+      assert backup.directory == "/workspace"
+      assert backup.description == "before migration"
+      assert backup.expires_at == "2024-12-31T00:00:00Z"
+      assert backup.created_at == "2024-06-01T00:00:00Z"
+    end
+
+    test "handles missing optional fields gracefully" do
+      raw = %{
+        "id" => "bkp-002",
+        "directory" => "/home/user",
+        "createdAt" => "2024-01-01T00:00:00Z"
+      }
+
+      backup = Sandbox.Types.Backup.from_map(raw)
+
+      assert backup.id == "bkp-002"
+      assert backup.directory == "/home/user"
+      assert backup.description == nil
+      assert backup.expires_at == nil
+      assert backup.created_at == "2024-01-01T00:00:00Z"
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # Sandbox backup pipe methods — API surface
+  # ---------------------------------------------------------------------------
+
+  describe "Sandbox backup methods – arities" do
+    setup do
+      fns = Sandbox.__info__(:functions)
+      {:ok, fns: fns}
+    end
+
+    test "create_backup/3 is defined", %{fns: fns} do
+      assert {:create_backup, 2} in fns
+      assert {:create_backup, 3} in fns
+    end
+
+    test "list_backups/2 is defined", %{fns: fns} do
+      assert {:list_backups, 1} in fns
+      assert {:list_backups, 2} in fns
+    end
+
+    test "restore_backup/3 is defined", %{fns: fns} do
+      assert {:restore_backup, 2} in fns
+      assert {:restore_backup, 3} in fns
+    end
+  end
+
+  describe "Sandbox backup methods – {:ok, struct} passthrough" do
+    test "create_backup/3 accepts {:ok, %Sandbox{}} and does not raise FunctionClauseError" do
+      sandbox = %Sandbox{id: "sbx-1", name: "test", status: :running, installs: 0}
+      assert match?({:error, _}, Sandbox.create_backup({:ok, sandbox}, "/workspace"))
+    end
+
+    test "list_backups/2 accepts {:ok, %Sandbox{}} and does not raise FunctionClauseError" do
+      sandbox = %Sandbox{id: "sbx-1", name: "test", status: :running, installs: 0}
+      assert match?({:error, _}, Sandbox.list_backups({:ok, sandbox}))
+    end
+
+    test "restore_backup/3 accepts {:ok, %Sandbox{}} and does not raise FunctionClauseError" do
+      sandbox = %Sandbox{id: "sbx-1", name: "test", status: :running, installs: 0}
+      assert match?({:error, _}, Sandbox.restore_backup({:ok, sandbox}, "bkp-001"))
+    end
+  end
+
+  describe "Sandbox backup methods – error propagation" do
+    test "create_backup/3 raises FunctionClauseError on {:error, reason}" do
+      assert_raise FunctionClauseError, fn ->
+        Sandbox.create_backup({:error, :not_found}, "/workspace")
+      end
+    end
+
+    test "list_backups/2 raises FunctionClauseError on {:error, reason}" do
+      assert_raise FunctionClauseError, fn ->
+        Sandbox.list_backups({:error, :not_found})
+      end
+    end
+
+    test "restore_backup/3 raises FunctionClauseError on {:error, reason}" do
+      assert_raise FunctionClauseError, fn ->
+        Sandbox.restore_backup({:error, :not_found}, "bkp-001")
+      end
+    end
+  end
+
+  # ---------------------------------------------------------------------------
   # Pocketenv public API surface
   # ---------------------------------------------------------------------------
 
